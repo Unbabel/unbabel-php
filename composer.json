@@ -1,0 +1,14 @@
+{
+    "name": "unbabel/unbabel-php",
+    "description": "Unbabel PHP SDK",
+    "require": {
+        "guzzlehttp/guzzle": "~4"
+    },
+    "license": "LGPL",
+    "authors": [
+        {
+            "name": "Sam",
+            "email": "sam@unbabel.com"
+        }
+    ]
+}
