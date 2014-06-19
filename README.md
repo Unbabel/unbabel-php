@@ -32,7 +32,6 @@ Set this to the string 'true' if you want to use the sandbox machine.
     ////////////////////////////////////////////////
   
     var_dump(Unbabel::get_topics()->json());
-    var_dump(Unbabel::submit_translation('This is a test', 'pt')->json());
     var_dump(Unbabel::get_jobs_with_status('new')->json());
     var_dump(Unbabel::get_translation('8a82e622db')->json());
     var_dump(Unbabel::get_tones()->json());

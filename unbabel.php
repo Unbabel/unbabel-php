@@ -181,7 +181,7 @@ class Unbabel {
 }
 
 /**
-   Run upon requirement to make sure the global vars are set
+   Run upon requirement to make sure the env vars are set
  */
 function check_unbabel_creds() {
 
