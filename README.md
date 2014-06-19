@@ -44,5 +44,3 @@ Set this to the string 'true' if you want to use the sandbox machine.
     ];
     var_dump(Unbabel::submit_bulk_translation($bulk)->json());
   
-
-
