@@ -2,8 +2,6 @@
 
 require 'vendor/autoload.php';
 
-$REQUIRED_VARS = array('UNBABEL_USERNAME', 'UNBABEL_APIKEY');
-
 /**
    
    Unbabel's PHP SDK is a wrapper around the HTTP API found at https://github.com/Unbabel/unbabel_api
@@ -179,14 +177,16 @@ class Unbabel {
     }
 }
 
+
+
+
 /**
    Run upon requirement to make sure the env vars are set
  */
 function check_unbabel_creds() {
 
-    global $REQUIRED_VARS, $OPTIOINAL_VARS;
     $fail = false;
-    foreach($REQUIRED_VARS as $varname) {
+    foreach(array('UNBABEL_USERNAME', 'UNBABEL_APIKEY') as $varname) {
         $varval = getenv($varname);
         if(! assert('$varval != null', "$varname required to be set as environment variable")) {
             $fail = true;
