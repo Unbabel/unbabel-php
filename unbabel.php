@@ -19,7 +19,7 @@ $REQUIRED_VARS = array('UNBABEL_USERNAME', 'UNBABEL_APIKEY');
    
    USAGE
 
-     require 'unbabel';
+     require 'unbabel.php';
 
      //$resp is an instance of a guzzle response object http://docs.guzzlephp.org/en/latest/http-messages.html#responses
      $opts = array('callback_url' => 'http://my-awesome-app/unbabel_callback.php');
@@ -40,9 +40,8 @@ $REQUIRED_VARS = array('UNBABEL_USERNAME', 'UNBABEL_APIKEY');
      var_dump(Unbabel::get_topics()->json());
      var_dump(Unbabel::submit_translation('This is a test', 'pt')->json());
      var_dump(Unbabel::get_jobs_with_status('new')->json());
-     var_dump(Unbabel::get_translation('8a82e622db')->json());
+     var_dump(Unbabel::get_translation('8a82e622dbBS')->json());
      var_dump(Unbabel::get_tones()->json());
-
      var_dump(Unbabel::get_language_pairs()->json());
 
      $bulk = [
@@ -151,10 +150,12 @@ class Unbabel {
         if ($sandbox) {
             $endpoint = "http://sandbox.unbabel.com/tapi/v2";
         } else {
-            $endpoint = "https://unbabel.co/tapi/v2";
+            $endpoint = "https://www.unbabel.co/tapi/v2";
         }
 
         $url = $endpoint . $path;
+        
+        echo("unbabel: Making request to $url\n");
 
         $headers = array(
             'Authorization' => "ApiKey $username:$apikey",
@@ -167,8 +168,6 @@ class Unbabel {
             $args['query'] = $data;
             $response = GuzzleHttp\get($url, $args);
         } else if ($method == 'post') {
-            var_dump($url);
-            var_dump($data);
             $args['json'] = $data;
             $response = GuzzleHttp\post($url, $args);
         } else if ($method == 'patch') {

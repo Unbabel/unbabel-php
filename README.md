@@ -13,7 +13,7 @@ Set this to the string 'true' if you want to use the sandbox machine.
 
 # USAGE
 
-    require 'unbabel';
+    require 'unbabel.php';
   
     //$resp is an instance of a guzzle response object http://docs.guzzlephp.org/en/latest/http-messages.html#responses
     $opts = array('callback_url' => 'http://my-awesome-app/unbabel_callback.php');
