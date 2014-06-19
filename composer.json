@@ -10,5 +10,8 @@
             "name": "Sam",
             "email": "sam@unbabel.com"
         }
-    ]
+    ],
+    "autoload": {
+        "files": ["unbabel.php"]
+    }
 }
