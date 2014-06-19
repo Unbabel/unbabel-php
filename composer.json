@@ -2,7 +2,8 @@
     "name": "unbabel/unbabel-php",
     "description": "Unbabel PHP SDK",
     "require": {
-        "guzzlehttp/guzzle": "~4"
+        "php": ">=5.3",
+        "guzzlehttp/guzzle": ">=3.7"
     },
     "license": "LGPL",
     "authors": [
