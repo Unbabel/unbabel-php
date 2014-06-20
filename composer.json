@@ -13,6 +13,6 @@
         }
     ],
     "autoload": {
-        "files": ["unbabel.php"]
+        "files": ["src/Unbabel/unbabel.php"]
     }
 }
