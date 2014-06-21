@@ -2,9 +2,13 @@
 
 namespace Unbabel;
 
-use GuzzleHttp;
-use GuzzleHttp\Message\ResponseInterface;
 use Unbabel\Exception\InvalidArgumentException;
+use Guzzle\Http\ClientInterface;
+use Guzzle\Http\Client;
+use Guzzle\Plugin\Mock\MockPlugin;
+use Guzzle\Http\Message\Response;
+use Guzzle\Http\EntityBodyInterface;
+use Guzzle\Common\ToArrayInterface;
 
 /**
  * Unbabel's PHP SDK is a wrapper around the HTTP API found at https://github.com/Unbabel/unbabel_api
@@ -74,15 +78,35 @@ class Unbabel
     protected $sandbox;
 
     /**
-     * @param string $username
-     * @param string $apiKey
-     * @param bool   $sandbox
+     * @var ClientInterface
+     */
+    protected $httpClient;
+
+    /**
+     * @param string               $username
+     * @param string               $apiKey
+     * @param bool                 $sandbox
      */
     public function __construct($username, $apiKey, $sandbox = false)
     {
         $this->username = $username;
         $this->apiKey = $apiKey;
         $this->sandbox = $sandbox;
+        $this->httpClient = new Client();
+    }
+
+    /**
+     * @param string                                   $statusCode The response status code (e.g. 200, 404, etc)
+     * @param string|resource|EntityBodyInterface|null $body       The body of the response
+     * @param ToArrayInterface|array|null              $headers    The response headers
+     */
+    public function addMockResponse($statusCode, $body = null, $headers = null)
+    {
+        // this is a hack to solve 'queue empty problem'
+        $this->httpClient = new Client();
+        $plugin = new MockPlugin();
+        $plugin->addResponse(new Response($statusCode, $headers, $body));
+        $this->httpClient->addSubscriber($plugin);
     }
 
     /**
@@ -97,7 +121,7 @@ class Unbabel
      * @param string $targetLanguage eg: pt
      * @param array  $options
      *
-     * @return ResponseInterface
+     * @return Response
      */
     public function submitTranslation($text, $targetLanguage, $options = array())
     {
@@ -229,15 +253,15 @@ class Unbabel
         switch ($method) {
             case 'get':
                 $args['query'] = $data;
-                $response = GuzzleHttp\get($url, $args);
+                $response = $this->httpClient->get($url, $args)->send();
                 break;
             case 'post':
                 $args['json'] = $data;
-                $response = GuzzleHttp\post($url, $args);
+                $response = $this->httpClient->post($url, $args)->send();
                 break;
             case 'patch':
                 $args['json'] = $data;
-                $response = GuzzleHttp\patch($url, $args);
+                $response = $this->httpClient->patch($url, $args)->send();
                 break;
             default:
                 throw new InvalidArgumentException(sprintf('Invalid method: %s', $method));

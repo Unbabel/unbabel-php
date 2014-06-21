@@ -3,7 +3,7 @@
     "description": "Unbabel PHP SDK",
     "require": {
         "php": ">=5.3",
-        "guzzlehttp/guzzle": ">=3.7"
+        "guzzle/guzzle": ">=3.7.0"
     },
     "license": "LGPL",
     "authors": [
@@ -12,7 +12,10 @@
             "email": "sam@unbabel.com"
         }
     ],
+    "require-dev": {
+        "phpunit/phpunit": "~4"
+    },
     "autoload": {
-        "files": ["src/Unbabel/unbabel.php"]
+        "psr-0": { "Unbabel": "src/" }
     }
 }
