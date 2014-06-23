@@ -58,7 +58,7 @@ class Unbabel
 {
     // NEW is a reserved keyword on PHP
     const NEW_ = 'new';
-    const READY = 'ready';
+    const READY = 'finished';
     const IN_PROGRESS = 'in_progress';
     const PROCESSING = 'processing';
 
@@ -242,26 +242,23 @@ class Unbabel
         }
         $url = sprintf('%s%s', $endpoint, $path);
 
-        $args = array(
-            'headers' => array(
+        $headers = array(
             'Authorization' => sprintf('ApiKey %s:%s', $this->username, $this->apiKey),
             'Content-Type' => 'application/json'
-            )
         );
 
         $response = null;
         switch ($method) {
             case 'get':
-                $args['query'] = $data;
-                $response = $this->httpClient->get($url, $args)->send();
+                $response = $this->httpClient->get($url, $headers, array('query' => $data))->send();
                 break;
             case 'post':
-                $args['json'] = $data;
-                $response = $this->httpClient->post($url, $args)->send();
+                $body = json_encode($data);
+                $response = $this->httpClient->post($url, $headers, $body)->send();
                 break;
             case 'patch':
-                $args['json'] = $data;
-                $response = $this->httpClient->patch($url, $args)->send();
+                $body = json_encode($data);
+                $response = $this->httpClient->patch($url, $headers, $body)->send();
                 break;
             default:
                 throw new InvalidArgumentException(sprintf('Invalid method: %s', $method));
