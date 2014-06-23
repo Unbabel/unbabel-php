@@ -13,6 +13,7 @@ class UnbabelTest extends PHPUnit_Framework_TestCase
 {
 
     public function setUp() {
+        parent::setUp();
         $this->unbabel = new Unbabel($GLOBALS['username'], $GLOBALS['apikey'], $sandbox = true);
     }
 
