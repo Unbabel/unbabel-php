@@ -82,3 +82,7 @@ require 'vendor/autoload.php';
  * var_dump(Unbabel::submit_bulk_translation($bulk)->json());
  */
  ```
+
+## Contributing
+
+[Read about](CONTRIBUTING.md)
