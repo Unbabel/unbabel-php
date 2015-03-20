@@ -236,7 +236,7 @@ class Unbabel
      */
     protected function request($path, array $data, $method = 'get')
     {
-        $endpoint = 'https://www.unbabel.co/tapi/v2';
+        $endpoint = 'https://unbabel.com/tapi/v2';
         if ($this->sandbox) {
             $endpoint = 'http://sandbox.unbabel.com/tapi/v2';
         }
