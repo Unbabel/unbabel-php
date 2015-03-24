@@ -1,6 +1,6 @@
 # Unbabel's PHP SDK #
 
-Unbabel's PHP SDK is a wrapper around the HTTP API found at https://github.com/Unbabel/unbabel_api
+Unbabel's PHP SDK is a wrapper around the HTTP API found at http://developers.unbabel.com/v2/docs
 
 ## Requirements ##
 
