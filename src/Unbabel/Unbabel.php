@@ -3,12 +3,8 @@
 namespace Unbabel;
 
 use Unbabel\Exception\InvalidArgumentException;
-use Guzzle\Http\ClientInterface;
-use Guzzle\Http\Client;
-use Guzzle\Plugin\Mock\MockPlugin;
 use Guzzle\Http\Message\Response;
-use Guzzle\Http\EntityBodyInterface;
-use Guzzle\Common\ToArrayInterface;
+use Unbabel\HttpDriver\HttpDriverInterface;
 
 /**
  * Unbabel's PHP SDK is a wrapper around the HTTP API found at https://github.com/Unbabel/unbabel_api
@@ -18,11 +14,14 @@ use Guzzle\Common\ToArrayInterface;
  * // just needed if you don't use composer
  * require 'Unbabel.php';
  *
- * use Unbabel/Unbabel;
+ * use Unbabel\Unbabel;
+ * use Unbabel\HttpDriver\Guzzle\GuzzleHttpDriver;
+ * use Guzzle\Http\Client
  *
- * $unbabel = new Unbabel('username', 'apiKey', $sandbox = false);
+ * $httpDriver = new GuzzleHttpDriver(new Client());
+ * $unbabel = new Unbabel('username', 'apiKey', $sandbox = false, $httpDriver);
  *
- * // $resp is an instance of a guzzle response object http://docs.guzzlephp.org/en/latest/http-messages.html#responses
+ * // $resp is an instance of \Unbabel\HttpDriver\Response
  * $opts = array('callback_url' => 'http://my-awesome-app/unbabel_callback.php');
  * $resp = $unbabel->getTranslation($text, $target_language, $opts);
  * if ($resp->getStatusCode() == 201) {
@@ -58,9 +57,12 @@ class Unbabel
 {
     // NEW is a reserved keyword on PHP
     const NEW_ = 'new';
-    const READY = 'finished';
-    const IN_PROGRESS = 'in_progress';
-    const PROCESSING = 'processing';
+    const IN_PROGRESS = 'translating';
+    const READY = 'completed';
+    const FAILED = 'failed';
+    const CANCELED = 'canceled';
+    const ACCEPTED = 'accepted';
+    const REJECTED = 'rejected';
 
     /**
      * @var string
@@ -78,35 +80,22 @@ class Unbabel
     protected $sandbox;
 
     /**
-     * @var ClientInterface
+     * @var HttpDriverInterface
      */
-    protected $httpClient;
+    protected $httpDriver;
 
     /**
-     * @param string               $username
-     * @param string               $apiKey
-     * @param bool                 $sandbox
+     * @param string $username
+     * @param string $apiKey
+     * @param bool $sandbox
+     * @param HttpDriverInterface $httpDriver
      */
-    public function __construct($username, $apiKey, $sandbox = false)
+    public function __construct($username, $apiKey, $sandbox = false, HttpDriverInterface $httpDriver)
     {
         $this->username = $username;
         $this->apiKey = $apiKey;
         $this->sandbox = $sandbox;
-        $this->httpClient = new Client();
-    }
-
-    /**
-     * @param string                                   $statusCode The response status code (e.g. 200, 404, etc)
-     * @param string|resource|EntityBodyInterface|null $body       The body of the response
-     * @param ToArrayInterface|array|null              $headers    The response headers
-     */
-    public function addMockResponse($statusCode, $body = null, $headers = null)
-    {
-        // this is a hack to solve 'queue empty problem'
-        $this->httpClient = new Client();
-        $plugin = new MockPlugin();
-        $plugin->addResponse(new Response($statusCode, $headers, $body));
-        $this->httpClient->addSubscriber($plugin);
+        $this->httpDriver = $httpDriver;
     }
 
     /**
@@ -150,7 +139,7 @@ class Unbabel
      * @param array $data
      * @param array $options
      *
-     * @return ResponseInterface
+     * @return Response
      */
     public function submitBulkTranslation($data, $options = array())
     {
@@ -160,7 +149,7 @@ class Unbabel
             $toSend[] = $t;
         }
 
-        $data = array('objects' => $data);
+        $data = array('objects' => $toSend);
 
         return $this->request('/translation/', $data, 'patch');
     }
@@ -168,7 +157,7 @@ class Unbabel
     /**
      * @param string $uid
      *
-     * @return ResponseInterface
+     * @return Response
      */
     public function getTranslation($uid)
     {
@@ -180,13 +169,13 @@ class Unbabel
      *
      * @param string $status
      *
-     * @return ResponseInterface
+     * @return Response
      *
      * @throws InvalidArgumentException
      */
     public function getJobsWithStatus($status)
     {
-        $possible = array(self::NEW_, self::READY, self::IN_PROGRESS, self::PROCESSING);
+        $possible = array(self::NEW_, self::READY, self::IN_PROGRESS, self::FAILED, self::CANCELED, self::ACCEPTED, self::REJECTED);
 
         if (!in_array($status, $possible)) {
             throw new InvalidArgumentException(sprintf('Expected status to be one of %s', implode(',', $possible)));
@@ -200,7 +189,7 @@ class Unbabel
     /**
      * Get all language pairs available
      *
-     * @return ResponseInterface
+     * @return Response
      */
     public function getLanguagePairs()
     {
@@ -210,7 +199,7 @@ class Unbabel
     /**
      *  Get all tones available in the platform
      *
-     * @return ResponseInterface
+     * @return Response
      */
     public function getTones()
     {
@@ -218,11 +207,16 @@ class Unbabel
     }
 
     /**
-     * @return ResponseInterface
+     * @return Response
      */
     public function getTopics()
     {
         return $this->request('/topic/', array(), 'get');
+    }
+
+    public function getWordCount($text)
+    {
+        return $this->request('/wordcount/', array('text' => $text), 'post');
     }
 
     /**
@@ -230,11 +224,40 @@ class Unbabel
      * @param array  $data
      * @param string $method
      *
-     * @return ResponseInterface
+     * @return Response
      *
      * @throws InvalidArgumentException
      */
     protected function request($path, array $data, $method = 'get')
+    {
+        $url = $this->buildRequestUrl($path);
+        $headers = $this->getHeaders();
+
+        $response = null;
+        switch ($method) {
+            case 'get':
+                $response = $this->httpDriver->get($url, $headers, array('query' => $data));
+                break;
+            case 'post':
+                $body = json_encode($data);
+                $response = $this->httpDriver->post($url, $headers, $body);
+                break;
+            case 'patch':
+                $body = json_encode($data);
+                $response = $this->httpDriver->patch($url, $headers, $body);
+                break;
+            default:
+                throw new InvalidArgumentException(sprintf('Invalid method: %s', $method));
+        }
+
+        return $response;
+    }
+
+    /**
+     * @param $path
+     * @return string
+     */
+    public function buildRequestUrl($path)
     {
         $endpoint = 'https://unbabel.com/tapi/v2';
         if ($this->sandbox) {
@@ -242,28 +265,18 @@ class Unbabel
         }
         $url = sprintf('%s%s', $endpoint, $path);
 
+        return $url;
+    }
+
+    /**
+     * @return array
+     */
+    public function getHeaders()
+    {
         $headers = array(
             'Authorization' => sprintf('ApiKey %s:%s', $this->username, $this->apiKey),
             'Content-Type' => 'application/json'
         );
-
-        $response = null;
-        switch ($method) {
-            case 'get':
-                $response = $this->httpClient->get($url, $headers, array('query' => $data))->send();
-                break;
-            case 'post':
-                $body = json_encode($data);
-                $response = $this->httpClient->post($url, $headers, $body)->send();
-                break;
-            case 'patch':
-                $body = json_encode($data);
-                $response = $this->httpClient->patch($url, $headers, $body)->send();
-                break;
-            default:
-                throw new InvalidArgumentException(sprintf('Invalid method: %s', $method));
-        }
-
-        return $response;
+        return $headers;
     }
 }
