@@ -48,11 +48,14 @@ require 'vendor/autoload.php';
  * // just needed if you don't use composer
  * require 'Unbabel.php';
  *
- * use Unbabel/Unbabel;
+ * use Unbabel\Unbabel;
+ * use Unbabel\HttpDriver\Guzzle\GuzzleHttpDriver;
+ * use Guzzle\Http\Client
  *
- * $unbabel = new Unbabel('username', 'apiKey', $sandbox = false);
+ * $httpDriver = new GuzzleHttpDriver(new Client());
+ * $unbabel = new Unbabel('username', 'apiKey', $sandbox = false, $httpDriver);
  *
- * // $resp is an instance of a guzzle response object http://docs.guzzlephp.org/en/latest/http-messages.html#responses
+ * // $resp is an instance of \Unbabel\HttpDriver\Response
  * $opts = array('callback_url' => 'http://my-awesome-app/unbabel_callback.php');
  * $resp = $unbabel->getTranslation($text, $target_language, $opts);
  * if ($resp->getStatusCode() == 201) {
