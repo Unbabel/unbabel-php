@@ -38,7 +38,7 @@ use Unbabel\HttpDriver\HttpDriverInterface;
  * ////////////////////////////////////////////////
  *
  * var_dump($unbabel->getTopics()->json());
- * var_dump($unbabel->submit_translation('This is a test', 'pt')->json());
+ * var_dump($unbabel->submitTranslation('This is a test', 'pt')->json());
  * var_dump($unbabel->getJobsWithStatus('new')->json());
  * var_dump($unbabel->getTranslation('8a82e622dbBS')->json());
  * var_dump($unbabel->getTones()->json());
@@ -154,14 +154,52 @@ class Unbabel
         return $this->request('/translation/', $data, 'patch');
     }
 
-    /**
-     * @param string $uid
-     *
-     * @return Response
-     */
     public function getTranslation($uid)
     {
         return $this->request(sprintf('/translation/%s/', $uid), array(), 'get');
+    }
+
+    /**
+     * Submit a XLIFF to translate.
+     *
+     * @param (string) $content
+     * @param (string) $targetLanguage eg: "pt"
+     *
+     * @param (array) $options eg:
+     *   $options = array(
+     *       "uid" => "123",                                                   (string)
+     *       "source_language" => "en",                                        (string)
+     *       "callback_url" => "http://example.com/example/",                  (string)
+     *       "tone" => "Informal",                                             (string)
+     *       "topics" => array("politics", "crafts"),                          (array)
+     *       "instructions" => "Please keep the tone informal for my example." (string)
+     *   );
+     *
+     * $unbabel->submitXliffOrder('<xliff version="1.2">\n<file>...', 'pt', $options)->json();
+     *
+     * @return HTTP Response
+     */
+    public function submitXliffOrder($content, $targetLanguage, $options=array())
+    {
+        $data = array_merge(
+            array(
+                'content' => $content,
+                'target_language' => $targetLanguage
+            ),
+            $options
+        );
+
+        return $this->request('/xliff_order/', $data, 'post');
+    }
+
+    /**
+     * @param (string) $uid
+     *
+     * @return HTTP Response
+     */
+    public function getXliffOrder($uid)
+    {
+        return $this->request(sprintf('/xliff_order/%s/', $uid), array(), 'get');
     }
 
     /**
