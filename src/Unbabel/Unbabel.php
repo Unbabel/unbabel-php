@@ -299,7 +299,7 @@ class Unbabel
     {
         $endpoint = 'https://unbabel.com/tapi/v2';
         if ($this->sandbox) {
-            $endpoint = 'http://sandbox.unbabel.com/tapi/v2';
+            $endpoint = 'https://sandbox.unbabel.com/tapi/v2';
         }
         $url = sprintf('%s%s', $endpoint, $path);
 
