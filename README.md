@@ -1,90 +1,63 @@
 # Unbabel's PHP SDK #
 
-Unbabel's PHP SDK is a wrapper around the HTTP API found at http://developers.unbabel.com/v2/docs
+Unbabel's PHP SDK is a wrapper around the [Unbabel HTTP API](https://developers.unbabel.com/v2/docs).
 
 ## Requirements ##
 
-* PHP >= 5.3
+* PHP: 7.x
 
 ## Installation ##
 
-The recommended way to install is through composer.
-
-Just create a `composer.json` file for your project:
-
-```json
-{
-    "require": {
-        "unbabel/unbabel-php": "dev-master"
-    }
-}
-```
-
-**Tip:** browse [`unbabel/unbabel-php`](https://packagist.org/packages/unbabel/unbabel-php) page to choose a stable version to use, avoid the `dev-master` meta constraint.
-
-And run these two commands to install it:
+The recommended way to install is through [Composer](https://getcomposer.org):
 
 ```bash
-$ curl -sS https://getcomposer.org/installer | php
-$ composer install
-```
-
-Now you can add the autoloader, and you will have access to the library:
-
-```php
-<?php
-
-require 'vendor/autoload.php';
+$ composer require unbabel/unbabel-php
 ```
 
 ## Usage
 
 ```php
-/**
- * Unbabel's PHP SDK is a wrapper around the HTTP API found at https://github.com/Unbabel/unbabel_api
- *
- * USAGE
- *
- * // just needed if you don't use composer
- * require 'Unbabel.php';
- *
- * use Unbabel\Unbabel;
- * use Unbabel\HttpDriver\Guzzle\GuzzleHttpDriver;
- * use Guzzle\Http\Client
- *
- * $httpDriver = new GuzzleHttpDriver(new Client());
- * $unbabel = new Unbabel('username', 'apiKey', $sandbox = false, $httpDriver);
- *
- * // $resp is an instance of \Unbabel\HttpDriver\Response
- * $opts = array('callback_url' => 'http://my-awesome-app/unbabel_callback.php');
- * $resp = $unbabel->getTranslation($text, $target_language, $opts);
- * if ($resp->getStatusCode() == 201) {
- *     // Hooray! Now we need to get the uid so when we are called back we know which translation it corresponds to.
- *     $uid = $resp->json()['uid'];
- *     save_uid_for_callback($uid);
- * } else {
- *    // If you think everything should be working correctly and you still get an error,
- *    // send email to sam@unbabel.com to complain.
- * }
- *
- * ////////////////////////////////////////////////
- * //       Other examples
- * ////////////////////////////////////////////////
- *
- * var_dump($unbabel->getTopics()->json());
- * var_dump($unbabel->submit_translation('This is a test', 'pt')->json());
- * var_dump($unbabel->getJobsWithStatus('new')->json());
- * var_dump($unbabel->getTranslation('8a82e622dbBS')->json());
- * var_dump($unbabel->getTones()->json());
- * var_dump($unbabel->getLanguagePairs()->json());
- *
- * $bulk = [
- *     ['text' => 'This is a test', 'target_language' => 'pt'],
- *     ['text' => 'This is a test', 'target_language' => 'es']
- * ];
- * var_dump(Unbabel::submit_bulk_translation($bulk)->json());
- */
- ```
+<?php
+
+require 'vendor/autoload.php';
+
+use Unbabel\Unbabel;
+use GuzzleHttp\Client;
+
+$httpClient = new Client();
+$unbabel = new Unbabel(
+    'username', 
+    'apiKey',
+     false, // Use sandbox server?
+     $httpClient
+);
+
+$opts = array('callback_url' => 'http://example.com/unbabel_callback.php');
+$resp = $unbabel->submitTranslation('This is a test', 'pt', $opts);
+if ($resp->getStatusCode() === 201) {
+    // Hooray! Now we need to get the uid so when we are called back we know which translation it corresponds to.
+    var_dump(json_decode($resp->getBody()->getContents(), true)['uid']);
+} else {
+    // If you think everything should be working correctly and you still get an error,
+    // send email to tech-support@unbabel.com to complain.
+    var_dump($resp->getBody());
+    
+    exit;
+}
+
+// Other examples:
+var_dump($unbabel->getTopics()->getBody());
+var_dump($unbabel->getJobsWithStatus('new')->getBody());
+var_dump($unbabel->getTranslation('8a82e622dbBS')->getBody());
+var_dump($unbabel->getTones()->getBody());
+var_dump($unbabel->getLanguagePairs()->getBody());
+
+$bulk = [
+    ['text' => 'This is a test', 'target_language' => 'pt'],
+    ['text' => 'This is a test', 'target_language' => 'es']
+];
+var_dump($unbabel->submitBulkTranslation($bulk)->getBody());
+```
 
 ## Contributing
 
