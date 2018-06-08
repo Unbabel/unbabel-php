@@ -1,21 +1,32 @@
 {
     "name": "unbabel/unbabel-php",
+    "type": "library",
     "description": "Unbabel PHP SDK",
-    "require": {
-        "php": ">=5.3",
-        "guzzle/guzzle": ">=3.7.0"
-    },
     "license": "LGPL",
     "authors": [
         {
-            "name": "Sam",
-            "email": "sam@unbabel.com"
+            "name": "Unbabel Tech Team",
+            "email": "tech-support@unbabel.com"
         }
     ],
+    "require": {
+        "php": "^7.0",
+        "guzzlehttp/guzzle": "^6.3"
+    },
     "require-dev": {
-        "phpunit/phpunit": "~4"
+        "phpunit/phpunit": "^6.5 || ^7.0"
     },
     "autoload": {
-        "psr-0": { "Unbabel": "src/" }
+        "psr-0": {
+            "Unbabel\\": ""
+        },
+        "exclude-from-classmap": [
+            "/Tests/"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Unbabel\\Tests\\": "Tests/"
+        }
     }
 }
