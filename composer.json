@@ -2,7 +2,7 @@
     "name": "unbabel/unbabel-php",
     "type": "library",
     "description": "Unbabel PHP SDK",
-    "license": "LGPL",
+    "license": "LGPL-3.0-or-later",
     "authors": [
         {
             "name": "Unbabel Tech Team",
